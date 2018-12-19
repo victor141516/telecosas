@@ -1,0 +1,8 @@
+__pycache__
+.DS_Store
+*.session
+config.py
+credentials.dat
+credentials.json
+tmp
+token.json
