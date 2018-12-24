@@ -13,19 +13,29 @@ def download_and_upload(gdrive_link):
     path = 'tmp'
 
     if split.must_split(path, filename):
+        print('Must split, compressing')
         nof_parts = split.compress(path, filename)
+        print('Compression completed')
         print('Parts: {}'.format(str(nof_parts)))
         dest_filenames = split.get_compressed_filenames(filename, nof_parts)
         must_split = True
     else:
+        print('Small file, skipping compression')
         dest_filenames = [filename]
         must_split = False
 
     for f in dest_filenames:
         print('Uploading {}\n\n'.format(f))
-        subprocess.Popen('python telegramfilemanager.py "{}"'.format(
+        porcess_out = subprocess.Popen('python telegramfilemanager.py "{}"'.format(
             path + ('/_rar/' if must_split else '/') + f
         ), shell=True)
+        if porcess_out.wait() != 0:
+            print('Error uploading your file:\n--STDERR')
+            print(porcess_out.stderr)
+            print('--\n\n--STDOUT')
+            print(porcess_out.stdout)
+            print('\n\n--')
+            quit()
         print('Uploaded {}'.format(f))
 
     if must_split:
