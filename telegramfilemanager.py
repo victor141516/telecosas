@@ -9,7 +9,7 @@ from telethon.client import TelegramBaseClient, UserMethods
 class TelegramFileManager(object):
     def __init__(self, tg_session, tg_api_id, tg_api_hash, loop=None):
         super(TelegramFileManager, self).__init__()
-        self.client = TelegramClient(tg_session, tg_api_id, tg_api_hash, loop=loop)
+        self.client = TelegramClient('config/' + tg_session, tg_api_id, tg_api_hash, loop=loop)
         self.client.start()
 
     def upload(self, file, file_name=None):
