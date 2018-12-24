@@ -10,7 +10,7 @@ def compress(path, filename):
         str(PART_SIZE), path, filename, path, filename
     )
     subprocess.check_output(command, shell=True)
-    return 1+int(os.path.getsize(path) / PART_SIZE)
+    return 1+int(os.path.getsize('{}/{}'.format(path, filename)) / PART_SIZE)
 
 def must_split(path, filename):
     return os.path.getsize(path + '/' + filename) > PART_SIZE

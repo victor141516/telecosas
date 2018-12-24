@@ -1,4 +1,4 @@
-from config import tg_session, tg_api_id, tg_api_hash
+from config.tg_app_credentials import tg_session, tg_api_id, tg_api_hash
 import hashlib
 from io import BytesIO
 import sys
@@ -139,6 +139,7 @@ def main():
     path = ' '.join(sys.argv[1:])
     tfm = TelegramFileManager(tg_session, tg_api_id, tg_api_hash)
 
+    print('\n')
     for step in tfm.upload(open(path, 'rb'), file_name=path.split('/')[-1]):
         if type(step) == float:
             print(step, end='%\r')

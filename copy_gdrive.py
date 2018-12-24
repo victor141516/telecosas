@@ -28,18 +28,18 @@ def fetch_credentials():
         'https://www.googleapis.com/auth/drive.photos.readonly'
     ]
 
-    if not os.path.exists('credentials.dat'):
-        flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+    if not os.path.exists('config/credentials.dat'):
+        flow = InstalledAppFlow.from_client_secrets_file('config/credentials.json', SCOPES)
         flow.redirect_uri = 'http://localhost:8080/'
         print(flow.authorization_url()[0])
         code = input('Enter the authorization code: ')
         flow.fetch_token(code=code)
         credentials = flow.credentials
 
-        with open('credentials.dat', 'wb') as credentials_dat:
+        with open('config/credentials.dat', 'wb') as credentials_dat:
             pickle.dump(credentials, credentials_dat)
     else:
-        with open('credentials.dat', 'rb') as credentials_dat:
+        with open('config/credentials.dat', 'rb') as credentials_dat:
             credentials = pickle.load(credentials_dat)
 
     return credentials
