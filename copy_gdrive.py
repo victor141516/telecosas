@@ -11,6 +11,7 @@ import os
 import pickle
 import re
 import sys
+import time
 
 ID_REGEX = re.compile('^([a-zA-Z0-9-_]{33}|[a-zA-Z0-9-_]{28})$')
 URL_REGEX = re.compile('^https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9-_]{33}|[a-zA-Z0-9-_]{28})')
@@ -30,7 +31,7 @@ def fetch_credentials():
 
     if not os.path.exists('config/credentials.dat'):
         flow = InstalledAppFlow.from_client_secrets_file('config/credentials.json', SCOPES)
-        flow.redirect_uri = 'http://localhost:8080/'
+        flow.redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
         print(flow.authorization_url()[0])
         code = input('Enter the authorization code: ')
         flow.fetch_token(code=code)
@@ -128,6 +129,7 @@ if __name__ == '__main__':
             try:
                 print('Coping: ' + each)
                 print(copy_copy_get_link(each, parent_id))
+                time.sleep(5)
             except GD2TGException as e:
                 print(e)
     else:
