@@ -45,7 +45,9 @@ def fetch_credentials():
     return credentials
 
 
-def copy_copy_get_link(original_file_id):
+def copy_copy_get_link(original_file_id, parent_folder_id='root'):
+    if parent_folder_id is None:
+        parent_folder_id = 'root'
     service = build('drive', 'v2', credentials=fetch_credentials())
 
     try:
@@ -59,7 +61,7 @@ def copy_copy_get_link(original_file_id):
     try:
         shared_copy = service.files().copy(fileId=original_file_id, body={
             'title': '_',
-            'parents': [{'id': 'root'}]}).execute()
+            'parents': [{'id': parent_folder_id}]}).execute()
     except errors.HttpError as e:
         if 'This file cannot be copied' in e.content.decode('utf-8'):
             raise GD2TGException('File with ID ' + original_file_id + ' cannot be copied')
@@ -68,7 +70,7 @@ def copy_copy_get_link(original_file_id):
 
     shared_copy_copy = service.files().copy(fileId=shared_copy['id'], body={
         'title': original_shared['title'],
-        'parents': [{'id': 'root'}]}).execute()
+        'parents': [{'id': parent_folder_id}]}).execute()
 
     download_url = 'https://drive.google.com/file/d/{}/view'.format(shared_copy_copy['id'])
 
@@ -108,16 +110,26 @@ def delete_file(file_id):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
+    parent_id = None
+    args = []
+    for i in range(0, len(sys.argv)):
+        if sys.argv[i].startswith('--parent='):
+            parent_id = sys.argv[i].split('--parent=')[-1]
+            print('Parent: '+ parent_id)
+        else:
+            args.append(sys.argv[i])
+
+    if len(args) > 1:
         ids = []
-        for each in sys.argv[1:]:
+        for each in args[1:]:
             ids.append(get_id(each))
         ids = list(set(ids))
         for each in ids:
             try:
-                print(copy_copy_get_link(each))
+                print('Coping: ' + each)
+                print(copy_copy_get_link(each, parent_id))
             except GD2TGException as e:
                 print(e)
     else:
-        print('Usage: python copy_gdrive.py [List of Drive URLs/IDs]')
+        print('Usage: python copy_gdrive.py {--parent=FOLDER_ID} [List of Drive URLs/IDs]')
         quit()
