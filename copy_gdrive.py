@@ -20,6 +20,22 @@ URL_REGEX = re.compile('^https:\/\/drive.google.com\/file\/d\/([a-zA-Z0-9-_]{33}
 class GD2TGException(ValueError):
     pass
 
+
+def execute_api_and_return(api_call, retries=6):
+    sleep_time = 1
+    for x in range(0, retries):
+        try:
+            time.sleep(sleep_time)
+            return api_call.execute()
+        except errors.HttpError as e:
+            if x == retries-1:
+                print('Request {} failed {} times, failing'.format(str(api_call), retries))
+                raise e
+
+            print('Request {} failed, retrying'.format(str(api_call)))
+            sleep_time *= 4
+            time.sleep(sleep_time)
+
 def fetch_credentials():
     SCOPES = [
         'https://www.googleapis.com/auth/drive',
@@ -51,18 +67,20 @@ def copy_copy_get_link(original_file_id, parent_folder_id='root'):
         parent_folder_id = 'root'
     service = build('drive', 'v2', credentials=fetch_credentials())
 
+    original_shared = service.files().get(fileId=original_file_id)
     try:
-        original_shared = service.files().get(fileId=original_file_id).execute()
+        original_shared = execute_api_and_return(original_shared)
     except errors.HttpError as e:
         if 'File not found' in e.content.decode('utf-8'):
             raise GD2TGException('File with ID ' + original_file_id + ' does not exists')
         else:
             raise e
 
+    shared_copy = service.files().copy(fileId=original_file_id, body={
+        'title': '_',
+        'parents': [{'id': parent_folder_id}]})
     try:
-        shared_copy = service.files().copy(fileId=original_file_id, body={
-            'title': '_',
-            'parents': [{'id': parent_folder_id}]}).execute()
+        shared_copy = execute_api_and_return(shared_copy)
     except errors.HttpError as e:
         if 'This file cannot be copied' in e.content.decode('utf-8'):
             raise GD2TGException('File with ID ' + original_file_id + ' cannot be copied')
@@ -71,11 +89,13 @@ def copy_copy_get_link(original_file_id, parent_folder_id='root'):
 
     shared_copy_copy = service.files().copy(fileId=shared_copy['id'], body={
         'title': original_shared['title'],
-        'parents': [{'id': parent_folder_id}]}).execute()
+        'parents': [{'id': parent_folder_id}]})
+
+    shared_copy_copy = execute_api_and_return(shared_copy_copy)
 
     download_url = 'https://drive.google.com/file/d/{}/view'.format(shared_copy_copy['id'])
 
-    service.files().delete(fileId=shared_copy['id']).execute()
+    execute_api_and_return(service.files().delete(fileId=shared_copy['id']))
 
     return download_url
 
@@ -92,7 +112,8 @@ def get_id(url_or_id):
 
 def download_file(file_id):
     service = build('drive', 'v3', credentials=fetch_credentials())
-    name = service.files().get(fileId=file_id).execute()['name']
+    name = service.files().get(fileId=file_id)
+    name = execute_api_and_return(name)['name']
     request = service.files().get_media(fileId=file_id)
     if not os.path.isdir('tmp'):
         os.mkdir('tmp')
@@ -107,7 +128,7 @@ def download_file(file_id):
 
 def delete_file(file_id):
     service = build('drive', 'v2', credentials=fetch_credentials())
-    return service.files().delete(fileId=file_id).execute()
+    return execute_api_and_return(service.files().delete(fileId=file_id))
 
 
 if __name__ == '__main__':
