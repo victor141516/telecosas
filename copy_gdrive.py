@@ -32,7 +32,7 @@ def execute_api_and_return(api_call, retries=6):
                 print('Request {} failed {} times, failing'.format(str(api_call), retries))
                 raise e
 
-            print('Request {} failed, retrying'.format(str(api_call)))
+            print('Request {} failed, retrying in {} seconds'.format(str(api_call), sleep_time))
             sleep_time *= 4
             time.sleep(sleep_time)
 
