@@ -33,7 +33,7 @@ ptyprocess==0.6.0
 pyaes==1.6.1
 pyasn1==0.4.4
 pyasn1-modules==0.2.2
-Pygments==2.3.0
+Pygments==2.7.4
 requests==2.21.0
 requests-oauthlib==1.0.0
 rsa==4.0
